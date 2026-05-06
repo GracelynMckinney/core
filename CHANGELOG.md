@@ -1,3 +1,15 @@
+## [3.5.34](https://github.com/vuejs/core/compare/v3.5.33...v3.5.34) (2026-05-06)
+
+
+### Bug Fixes
+
+* **compiler-sfc:** infer Vue ref wrapper types when source is unresolvable ([#14758](https://github.com/vuejs/core/issues/14758)) ([7f46fd4](https://github.com/vuejs/core/commit/7f46fd411b4e3f75ca755ee1318ea8e9aff43f56)), closes [#14729](https://github.com/vuejs/core/issues/14729)
+* **compiler-sfc:** preserve hash hrefs on `<image>` elements ([#14756](https://github.com/vuejs/core/issues/14756)) ([090b2e3](https://github.com/vuejs/core/commit/090b2e3a5149ec951c5313b270e5400a1fc870ce))
+* **compiler-sfc:** resolve type re-exports inside declare global ([#14766](https://github.com/vuejs/core/issues/14766)) ([acfffe3](https://github.com/vuejs/core/commit/acfffe34e7724a84c21bb8e51e8a5bc0da35f350))
+* **reactivity:** prevent orphan effect when created in a stopped scope ([#14778](https://github.com/vuejs/core/issues/14778)) ([c8e2d4a](https://github.com/vuejs/core/commit/c8e2d4adc9112d2529de0434acc1188dfc399bf4)), closes [#14777](https://github.com/vuejs/core/issues/14777)
+* **runtime-core:** avoid symbol coercion during props validation ([#8539](https://github.com/vuejs/core/issues/8539)) ([23d4fb5](https://github.com/vuejs/core/commit/23d4fb5a6a070df3d2d4a043f0f62c141e376095)), closes [#8487](https://github.com/vuejs/core/issues/8487)
+* **suspense:** avoid DOM leak with out-in transition in v-if fragment ([#14762](https://github.com/vuejs/core/issues/14762)) ([9667e0d](https://github.com/vuejs/core/commit/9667e0d498ab39273614682986a666c3e73024d9)), closes [#14761](https://github.com/vuejs/core/issues/14761)
+
 ## [3.5.33](https://github.com/vuejs/core/compare/v3.5.32...v3.5.33) (2026-04-22)
 
 
