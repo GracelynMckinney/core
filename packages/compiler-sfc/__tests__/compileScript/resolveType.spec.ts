@@ -1497,6 +1497,139 @@ describe('resolveType', () => {
       })
     })
 
+    test('global types with re-exports', () => {
+      const files = {
+        '/foo.ts': `export interface Foo { foo: number }`,
+        '/bar.ts': `export interface Bar { bar: boolean }`,
+        '/baz.ts': `export interface Baz { baz: string }`,
+        '/global.d.ts': `
+          declare global {
+            export type { Foo } from './foo'
+            export { Bar } from './bar'
+            export * from './baz'
+          }
+          export {}
+        `,
+      }
+
+      const globalTypeFiles = { globalTypeFiles: ['/global.d.ts'] }
+
+      const fooRes = resolve(`defineProps<Foo>()`, files, globalTypeFiles)
+      expect(fooRes.props).toStrictEqual({
+        foo: ['Number'],
+      })
+      expect(fooRes.deps && [...fooRes.deps]).toStrictEqual([
+        '/global.d.ts',
+        '/foo.ts',
+      ])
+
+      const barRes = resolve(`defineProps<Bar>()`, files, globalTypeFiles)
+      expect(barRes.props).toStrictEqual({
+        bar: ['Boolean'],
+      })
+      expect(barRes.deps && [...barRes.deps]).toStrictEqual([
+        '/global.d.ts',
+        '/bar.ts',
+      ])
+
+      const bazRes = resolve(`defineProps<Baz>()`, files, globalTypeFiles)
+      expect(bazRes.props).toStrictEqual({
+        baz: ['String'],
+      })
+      expect(bazRes.deps && [...bazRes.deps]).toStrictEqual([
+        '/global.d.ts',
+        '/baz.ts',
+      ])
+    })
+
+    test('global types with re-exports preserve source-module scope', () => {
+      const files = {
+        '/types.ts': `export type Name = string`,
+        '/foo.ts': `
+          import type { Name } from './types'
+          export interface Foo { name: Name }
+        `,
+        '/global.d.ts': `
+          declare global {
+            export type { Foo } from './foo'
+          }
+          export {}
+        `,
+      }
+
+      expect(
+        resolve(`defineProps<Foo>()`, files, {
+          globalTypeFiles: ['/global.d.ts'],
+        }).props,
+      ).toStrictEqual({
+        name: ['String'],
+      })
+    })
+
+    test('global types with re-exports from package directory', () => {
+      const files = {
+        '/node_modules/pkg/package.json': `{ "types": "dist/index.d.ts" }`,
+        '/node_modules/pkg/dist/index.d.ts': `
+          export interface PackageType { value: string }
+        `,
+        '/global.d.ts': `
+          declare global {
+            export type { PackageType } from './node_modules/pkg'
+          }
+          export {}
+        `,
+      }
+
+      const { props, deps } = resolve(`defineProps<PackageType>()`, files, {
+        globalTypeFiles: ['/global.d.ts'],
+      })
+
+      expect(props).toStrictEqual({
+        value: ['String'],
+      })
+      expect(deps && [...deps]).toStrictEqual([
+        '/global.d.ts',
+        '/node_modules/pkg/dist/index.d.ts',
+      ])
+    })
+
+    test('global types with re-exports track source deps after cache reuse', () => {
+      const files = {
+        '/base.ts': `export interface Base { age: number }`,
+        '/types.ts': `export type Name = string`,
+        '/foo.ts': `
+          import type { Base } from './base'
+          import type { Name } from './types'
+          export interface Foo extends Base { name: Name }
+        `,
+        '/global.d.ts': `
+          declare global {
+            export type { Foo } from './foo'
+          }
+          export {}
+        `,
+      }
+      const globalTypeFiles = { globalTypeFiles: ['/global.d.ts'] }
+      const expectedDeps = ['/global.d.ts', '/foo.ts', '/base.ts', '/types.ts']
+
+      const { deps: coldDeps } = resolve(
+        `defineProps<Foo>()`,
+        files,
+        globalTypeFiles,
+      )
+      expect(coldDeps && [...coldDeps]).toStrictEqual(expectedDeps)
+
+      const { deps } = resolve(
+        `defineProps<Foo>()`,
+        files,
+        globalTypeFiles,
+        '/Other.vue',
+        false,
+      )
+
+      expect(deps && [...deps]).toStrictEqual(expectedDeps)
+    })
+
     test('global types with ambient references', () => {
       const files = {
         // with references
